@@ -6,11 +6,7 @@ from flask.ext.bcrypt import Bcrypt
 from functools import wraps
 
 app = Flask(__name__)
-app.config['DEBUG']=True
-app.config['SECRET_KEY'] = 'change-me'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1/816diesel'
-app.config['SESSION_TYPE'] = 'sqlalchemy'
-app.config['SESSION_SQLALCHEMY_TABLE'] = 'sessions'
+app.config.from_pyfile('config.py', silent=False)
 
 bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
