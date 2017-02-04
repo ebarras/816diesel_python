@@ -40,6 +40,9 @@ class Role(db.Model):
     def __hash__(self):
         return hash(self.name)
 
+    def __repr__(self):
+        return self.name
+
 # User class
 class User(db.Model):
 
@@ -50,7 +53,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=True)
     avatar = db.Column(db.String(200))
     tokens = db.Column(db.Text)
-    password = db.Column(db.String(255))
+    #password = db.Column(db.String(255))
     active = db.Column(db.Boolean(), default=False)
     confirmed_at = db.Column(db.DateTime())
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
@@ -72,23 +75,12 @@ def before_first_request():
         role = Role(name='admin', description='Administrator');
         db.session.add(role)
 
-    role = Role.query.filter_by(name='user').first()
-    if (not role):
-        role = Role(name='user', description='User');
-        db.session.add(role)
-
     # Add some users to the DB if they don't exist (for testing).
     user = User.query.filter_by(email='admin@816diesel.com').first()
     if (not user):
-        user = User(email='admin@816diesel.com', password=bcrypt.generate_password_hash('password', 12), active=1);
+        #user = User(email='admin@816diesel.com', password=bcrypt.generate_password_hash('password', 12), active=1);
+        user = User(email='ebarras@gmail.com', active=1);
         role = Role.query.filter_by(name='admin').first()
-        user.roles.append(role)
-        db.session.add(user)
-
-    user = User.query.filter_by(email='user@816diesel.com').first()
-    if (not user):
-        user = User(email='user@816diesel.com', password=bcrypt.generate_password_hash('password', 12), active=1);
-        role = Role.query.filter_by(name='user').first()
         user.roles.append(role)
         db.session.add(user)
 
@@ -97,26 +89,30 @@ def before_first_request():
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user' not in session:
+        if 'user_email' not in session:
             return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
     return decorated_function
 
 @app.route('/')
 def index():
+    if 'user_email' in session:
+        user_perms = Role.query.filter(Role.users.any(email=session['user_email'])).all()
+        print(user_perms)
+        return render_template('index.html', user_perms=user_perms)
     return render_template('index.html')
 
-@app.route('/admin')
+@app.route('/admin/')
 @login_required
 def admin():
     return 'ADMIN PAGE'
 
-@app.route('/admin/users')
+@app.route('/admin/users/')
 @login_required
 def admin_users():
     return 'USER ADMIN PAGE'
 
-@app.route('/admin/roles')
+@app.route('/admin/roles/')
 @login_required
 def admin_roles():
     return 'ROLES ADMIN PAGE'
@@ -135,22 +131,23 @@ def get_google_auth(state=None, token=None):
         scope=app.config['GOOGLE_SCOPE'])
     return oauth
 
-@app.route('/login')
+@app.route('/login/')
 def login():
     # Here we write the login.
 
     # Login Page needs a view that sends email and pass. bcrypt the pass and check both against the database. If the user is
     #  in the database, set the session to the user so we have all their data. Include user rolls for auth stuff.
 
-    if 'user' in session:
+    if 'user_email' in session:
         return redirect(url_for('index'))
     google = get_google_auth()
     auth_url, state = google.authorization_url(
         app.config['GOOGLE_AUTH_URI'], access_type='offline')
     session['oauth_state'] = state
+    session['previous_page'] = request.args.get('next') or ''
     return render_template('login.html', auth_url=auth_url)
 
-@app.route('/gCallback')
+@app.route('/gCallback/')
 def callback():
     # Redirect user to home page if already logged in.
     #if current_user is not None and current_user.is_authenticated:
@@ -187,11 +184,12 @@ def callback():
             db.session.add(user)
             db.session.commit()
             # Figure out WTF is going on here.
-            session['user'] = user.email
-            return redirect(url_for('index'))
+            session['user_email'] = user.email
+            session['user_avatar'] = user.avatar
+            return redirect(session['previous_page'] or url_for('index'))
         return 'Could not fetch your information.'
 
-@app.route('/logout')
+@app.route('/logout/')
 def logout():
     session.clear()
     return redirect(url_for('index'))

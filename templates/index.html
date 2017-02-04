@@ -6,10 +6,16 @@
 </head>
 
 <body>
-	<p>{{ session.user }}</p>
+	<p>{{ session['user_email'] }}</p>
+	<p><img src="{{ session['user_avatar'] }}" /></p>
     If you're an administrator, you can click <a href="admin">here</a> to administer Users and Roles.<br />
     <br />
     Click <a href="/logout">here</a> to log out.<br />
-    <p> {{session}}
+		<p>{{ session['previous_page'] }}</p>
+
+		{% for role in user_perms %}
+        <li>{{ role.name }}</li>
+    {% endfor %}
+
 </body>
 </html>

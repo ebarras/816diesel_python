@@ -3,6 +3,7 @@ SECRET_KEY = 'change-me'
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@127.0.0.1/816diesel'
 SESSION_TYPE = 'sqlalchemy'
 SESSION_SQLALCHEMY_TABLE = 'sessions'
+DEFAULT_ADMIN_EMAIL = 'your_email@google.com'
 
 # Get these from https://console.developers.google.com/apis/
 GOOGLE_CLIENT_ID = ('YOUR CLIENT_ID HERE'
