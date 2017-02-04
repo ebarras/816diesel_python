@@ -3,3 +3,13 @@ SECRET_KEY = 'change-me'
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@127.0.0.1/816diesel'
 SESSION_TYPE = 'sqlalchemy'
 SESSION_SQLALCHEMY_TABLE = 'sessions'
+
+# Get these from https://console.developers.google.com/apis/
+GOOGLE_CLIENT_ID = ('YOUR CLIENT_ID HERE'
+                 '.apps.googleusercontent.com')
+GOOGLE_CLIENT_SECRET = 'YOUR CLIENT_SECRET HERE'
+GOOGLE_REDIRECT_URI = 'https://localhost:1337/gCallback'
+GOOGLE_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+GOOGLE_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+GOOGLE_USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
+GOOGLE_SCOPE = ['profile','email']
